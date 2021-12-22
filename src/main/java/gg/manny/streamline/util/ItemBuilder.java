@@ -168,6 +168,16 @@ public class ItemBuilder {
     }
 
     /**
+     * Adds an encoded line to the lore of this builder at a specific position.
+     *
+     * @param line the line to add
+     * @return this instance
+     */
+    public ItemBuilder hiddenLoreLine(String line) {
+        return loreLine(HiddenStringUtils.encodeString(line));
+    }
+
+    /**
      * Sets the lore of this item builder.
      *
      * @param lore the lore varargs to set
