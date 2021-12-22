@@ -1,0 +1,6 @@
+name: Streamline
+main: gg.manny.streamline.Streamline
+version: ${git.commit.id.abbrev}
+description: Manages plugin updates
+author: Manny
+commands:
