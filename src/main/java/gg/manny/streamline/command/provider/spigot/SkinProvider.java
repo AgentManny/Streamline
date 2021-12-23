@@ -16,7 +16,6 @@ import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class SkinProvider extends DrinkProvider<Skin> {
 

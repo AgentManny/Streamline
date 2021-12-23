@@ -1,17 +1,18 @@
 package gg.manny.streamline.npc;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 import gg.manny.streamline.Streamline;
 import gg.manny.streamline.npc.event.NPCInteractEvent;
 import gg.manny.streamline.util.PlayerUtils;
 import gg.manny.streamline.util.ReflectionUtils;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Skin;
+import org.bukkit.craftbukkit.v1_8_R3.util.Skins;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -56,7 +57,7 @@ public class NPC {
         this.entityId = Streamline.getInstance().getServer().allocateEntityId();
 
         this.profile = new GameProfile(id, name);
-        setSkin(skin); // Sets game profile
+        Skins.setProperties(this.skin = skin, profile.getProperties());
 
         this.location = location;
     }
@@ -127,8 +128,7 @@ public class NPC {
     }
 
     public void setSkin(Skin skin) {
-        this.skin = skin;
-        this.profile.getProperties().put("textures", new Property("textures", skin.getData(), skin.getSignature()));
+        Skins.setProperties(this.skin = skin, profile.getProperties());
     }
 
     /**
@@ -139,8 +139,11 @@ public class NPC {
             Player player = Bukkit.getPlayer(observer);
             if (observer != null) {
                 remove(player);
-                Streamline.getInstance().getServer().getScheduler().runTaskLater(Streamline.getInstance(),
-                        () -> create(player), 4L);
+                Streamline.getInstance().getServer().getScheduler().runTask(Streamline.getInstance(),
+                        () -> {
+                            create(player);
+                            sendAnimation(AnimationType.SWING);
+                        });
             }
         }
     }
@@ -185,6 +188,27 @@ public class NPC {
         lastInteraction.clear();
     }
 
+    public void update(DataWatcher dataWatcher, boolean value) {
+        sendPacket(observers, new PacketPlayOutEntityMetadata(entityId, dataWatcher, value));
+    }
+
+    public void sendAnimation(AnimationType animation) {
+        PacketPlayOutAnimation armAnimation = new PacketPlayOutAnimation();
+        try {
+            ReflectionUtils.setValue(armAnimation, true, "a", entityId);
+            ReflectionUtils.setValue(armAnimation, true, "b", animation.id);
+            sendPacket(observers, armAnimation);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendStatus(PlayerStatus status, boolean value) {
+        DataWatcher watcher = new DataWatcher(null);
+        watcher.a(0, (byte) status.bitmask);
+        update(watcher, value);
+    }
+
     private static void sendPacket(Set<UUID> players, Packet... packets) {
         for (UUID uuid : players) {
             Player player = Bukkit.getPlayer(uuid);
@@ -201,5 +225,23 @@ public class NPC {
         RIGHT_CLICK,
         LEFT_CLICK
 
+    }
+
+    @AllArgsConstructor
+    public enum PlayerStatus {
+
+        FIRE(0x01), CROUCHING(0x02), SPRINTING(0x08), BLOCK(0x16), INVISIBLE(0x20),
+        ;
+
+        public int bitmask;
+    }
+
+    @AllArgsConstructor
+    public enum AnimationType {
+
+        SWING(0), DAMAGE(1), CRITICALS_PARTICLE(4), ENCHANTMENT(5), //    EAT(6),
+        ;
+
+        public int id;
     }
 }
