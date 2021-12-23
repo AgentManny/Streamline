@@ -1,25 +1,18 @@
 package gg.manny.streamline.entity.metadata;
 
-import gg.manny.streamline.entity.IEntityMetadata;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.entity.Player;
+import net.minecraft.server.v1_8_R3.BlockPosition;
+import org.bukkit.entity.EnderCrystal;
 
 @Getter
 @AllArgsConstructor
 @RequiredArgsConstructor
-public enum PlayerMetadataI implements IEntityMetadata<Player> {
+public enum EndCrystalMetadata implements IEntityMetadata<EnderCrystal> {
 
-    FIRE(0, Byte.class, 0x01),
-    CROUCH(0, Byte.class, 0x02),
-
-    @Deprecated
-    RIDING(0, Byte.class, 0x04),
-
-    SPRINTING(0, Byte.class, 0x08),
-    SWIMMING(0, Byte.class, 0x10)
-
+    BEAM_TARGET(8, BlockPosition.class, null),
+    SHOW_BOTTOM(9, Boolean.class, true),
     ;
 
     private final int id;

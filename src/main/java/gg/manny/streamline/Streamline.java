@@ -6,14 +6,12 @@ import gg.manny.streamline.command.command.DrinkCommandService;
 import gg.manny.streamline.handler.ServerMovementHandler;
 import gg.manny.streamline.handler.ServerPacketHandler;
 import gg.manny.streamline.menu.MenuHandler;
-import gg.manny.streamline.npc.NPC;
 import gg.manny.streamline.npc.NPCManager;
 import gg.manny.streamline.npc.event.NPCInteractEvent;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import rip.thecraft.server.CraftServer;
 import rip.thecraft.server.handler.MovementHandler;
@@ -73,20 +71,5 @@ public class Streamline extends JavaPlugin implements Listener {
     public static CommandService getCommandService(@Nonnull JavaPlugin javaPlugin) {
         Preconditions.checkNotNull(javaPlugin, "JavaPlugin cannot be null");
         return services.computeIfAbsent(javaPlugin.getName(), name -> new DrinkCommandService(javaPlugin));
-    }
-
-
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        NPC manny = new NPC("Manny", player.getSkin(), player.getLocation());
-        npcManager.registeredNPCs.add(manny);
-        manny.addObserver(player);
-    }
-
-    @EventHandler
-    public void onNPCInteract(NPCInteractEvent event) {
-        Player player = event.getPlayer();
-        player.sendMessage("You interacted with: " + event.getNpc().getName() + " (" + event.getInteract().name() + ")");
     }
 }

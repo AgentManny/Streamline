@@ -1,4 +1,4 @@
-package gg.manny.streamline.entity;
+package gg.manny.streamline.entity.metadata;
 
 import org.bukkit.entity.Entity;
 

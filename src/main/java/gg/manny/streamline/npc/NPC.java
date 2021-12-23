@@ -1,5 +1,6 @@
 package gg.manny.streamline.npc;
 
+import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import gg.manny.streamline.Streamline;
 import gg.manny.streamline.npc.event.NPCInteractEvent;
@@ -12,6 +13,7 @@ import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Skin;
+import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_8_R3.util.Skins;
 import org.bukkit.entity.Player;
 
@@ -62,6 +64,48 @@ public class NPC {
         this.location = location;
     }
 
+    public NPC(JsonObject data) {
+        this.id = UUID.fromString(data.get("id").getAsString());
+        this.name = data.get("name").getAsString();
+        this.entityId = Streamline.getInstance().getServer().allocateEntityId();
+
+        this.profile = new GameProfile(id, name);
+
+        JsonObject skinData = data.get("skin").getAsJsonObject();
+        Skin skin = new Skin(skinData.get("texture").getAsString(), skinData.get("signature").getAsString());
+        Skins.setProperties(this.skin = skin, profile.getProperties());
+
+        JsonObject locationData = data.get("location").getAsJsonObject();
+        World world = Bukkit.getWorld(locationData.get("world").getAsString());
+        double x = locationData.get("x").getAsDouble();
+        double y = locationData.get("y").getAsDouble();
+        double z = locationData.get("z").getAsDouble();
+        float yaw = locationData.get("yaw").getAsFloat();
+        float pitch = locationData.get("pitch").getAsFloat();
+        this.location = new Location(world, x, y, z, yaw, pitch);
+    }
+
+    public JsonObject serialize() {
+        JsonObject data = new JsonObject();
+        data.addProperty("id", id.toString());
+        data.addProperty("name", name);
+
+        JsonObject skinData = new JsonObject();
+        skinData.addProperty("texture", skin.getData());
+        skinData.addProperty("signature", skin.getSignature());
+        data.add("skin", skinData);
+
+        JsonObject locationData = new JsonObject();
+        locationData.addProperty("world", location.getWorld().getName());
+        locationData.addProperty("x", location.getX());
+        locationData.addProperty("y", location.getY());
+        locationData.addProperty("z", location.getZ());
+        locationData.addProperty("yaw", location.getYaw());
+        locationData.addProperty("pitch", location.getPitch());
+        data.add("location", locationData);
+        return data;
+    }
+
     private List<Packet<?>> getSpawnPacket(boolean legacy) {
         List<Packet<?>> packets = new ArrayList<>();
 
@@ -69,6 +113,7 @@ public class NPC {
         watcher.a(0, (byte) 0);
         watcher.a(1, (short) 0);
         watcher.a(8, (byte) 0);
+        watcher.a(10, (byte) 127); // Skin parts
 
         PacketPlayOutNamedEntitySpawn spawnEntity = new PacketPlayOutNamedEntitySpawn(
                 entityId, id,
@@ -141,17 +186,17 @@ public class NPC {
                 remove(player);
                 Streamline.getInstance().getServer().getScheduler().runTask(Streamline.getInstance(),
                         () -> {
-                            create(player);
+                            create(player, false);
                             sendAnimation(AnimationType.SWING);
                         });
             }
         }
     }
 
-    public void addObserver(Player player) {
+    public void addObserver(Player player, boolean loggedIn) {
         if (!observers.contains(player.getUniqueId())) {
             observers.add(player.getUniqueId());
-            create(player);
+            create(player, loggedIn);
         }
     }
 
@@ -162,9 +207,21 @@ public class NPC {
         }
     }
 
-    public void create(Player player) {
+    public void create(Player player, boolean loggedIn) {
         boolean legacy = PlayerUtils.onLegacyVersion(player);
         getSpawnPacket(legacy).forEach(packet -> PlayerUtils.sendPacket(player, packet));
+        if (!legacy) {
+            Streamline.getInstance().getServer().getScheduler().runTaskLater(Streamline.getInstance(), () -> {
+                if (observers.contains(player.getUniqueId())) {
+                    Bukkit.broadcastMessage("Removing " + name + " from TAB as this player is visible");
+                    PacketPlayOutPlayerInfo playerInfo = new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER);
+                    playerInfo.b.add(playerInfo.constructData(profile, 0, WorldSettings.EnumGamemode.SURVIVAL, new ChatComponentText(name)));
+                    PlayerUtils.sendPacket(player, playerInfo);
+                } else {
+                    Bukkit.broadcastMessage("Test");
+                }
+            }, loggedIn ? 30L : 10L);
+        }
     }
 
     public void remove(Player player) {
@@ -201,6 +258,12 @@ public class NPC {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendData(int id, byte bitmask) {
+        DataWatcher watcher = new DataWatcher(null);
+        watcher.a(id, bitmask);
+        update(watcher, true);
     }
 
     public void sendStatus(PlayerStatus status, boolean value) {

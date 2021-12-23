@@ -3,6 +3,7 @@ package gg.manny.streamline.handler;
 import gg.manny.streamline.Streamline;
 import gg.manny.streamline.npc.NPC;
 import gg.manny.streamline.npc.NPCManager;
+import gg.manny.streamline.npc.NPCRegistry;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.server.v1_8_R3.Packet;
 import net.minecraft.server.v1_8_R3.PacketPlayInUseEntity;
@@ -20,7 +21,7 @@ public class ServerPacketHandler implements PacketHandler {
         String packetName = packet.getClass().getSimpleName();
         if (packetName.equals("PacketPlayInUseEntity")) {
             PacketPlayInUseEntity useEntity = (PacketPlayInUseEntity) packet;
-            for (NPC registeredNPC : npcManager.registeredNPCs) {
+            for (NPC registeredNPC : NPCRegistry.npcs) {
                 if (useEntity.getEntityId() == registeredNPC.entityId) {
                     registeredNPC.interact(playerConnection.player, useEntity);
                 }
@@ -30,6 +31,5 @@ public class ServerPacketHandler implements PacketHandler {
 
     @Override
     public void handleSentPacket(PlayerConnection playerConnection, Packet packet) {
-
     }
 }
