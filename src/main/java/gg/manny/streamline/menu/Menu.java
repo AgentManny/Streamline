@@ -20,7 +20,7 @@ public class Menu {
     private Inventory inventory;
 
     private Map<Integer, MenuButton> buttons = new HashMap<>();
-    private List<UUID> viewers = new ArrayList<>();
+    private Set<UUID> viewers = new HashSet<>();
 
     private long updateTicks = -1L;
     private BukkitTask bukkitTask;
