@@ -1,5 +1,9 @@
 package gg.manny.streamline.moreprojectiles.projectile;
 
+import gg.manny.streamline.Streamline;
+import gg.manny.streamline.moreprojectiles.TypedRunnable;
+import gg.manny.streamline.moreprojectiles.event.CustomProjectileHitEvent;
+import gg.manny.streamline.moreprojectiles.event.ItemProjectileHitEvent;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -13,10 +17,6 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
-import rip.thecraft.brawl.Brawl;
-import gg.manny.streamline.moreprojectiles.TypedRunnable;
-import gg.manny.streamline.moreprojectiles.event.CustomProjectileHitEvent;
-import gg.manny.streamline.moreprojectiles.event.ItemProjectileHitEvent;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public class ItemProjectile extends EntityItem implements IProjectile, CustomPro
     private ArrayList<Material> ignoredMaterials = new ArrayList<>();
     private Field f;
 
-    public static FixedMetadataValue meta = new FixedMetadataValue(Brawl.getInstance(), true);
+    public static FixedMetadataValue meta = new FixedMetadataValue(Streamline.getInstance(), true);
 
     /**
      * Instantiates a new item projectile.

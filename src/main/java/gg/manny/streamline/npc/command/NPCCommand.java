@@ -1,6 +1,7 @@
 package gg.manny.streamline.npc.command;
 
 import gg.manny.streamline.command.annotation.Command;
+import gg.manny.streamline.command.annotation.Require;
 import gg.manny.streamline.command.annotation.Sender;
 import gg.manny.streamline.command.annotation.Text;
 import gg.manny.streamline.npc.NPC;
@@ -13,6 +14,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 @RequiredArgsConstructor
+@Require("npc.manage")
 public class NPCCommand {
 
     private final NPCManager npcManager;

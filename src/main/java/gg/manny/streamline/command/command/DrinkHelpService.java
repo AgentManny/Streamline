@@ -8,6 +8,9 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 public class DrinkHelpService {
@@ -18,16 +21,25 @@ public class DrinkHelpService {
     public DrinkHelpService(DrinkCommandService commandService) {
         this.commandService = commandService;
         this.helpFormatter = (sender, container) -> {
-            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e" + container.getName() + " Commands (&d" + container.getCommands().size() + "&e):"));
+
+            List<TextComponent> commands = new ArrayList<>();
             for (DrinkCommand c : container.getCommands().values()) {
-                String usage = c.getMostApplicableUsage().trim();
-                TextComponent msg = new TextComponent(net.md_5.bungee.api.ChatColor.translateAlternateColorCodes('&',
-                        "&e - /" + container.getName().toLowerCase() + (c.getName().length() > 0 ? " &d" + c.getName() : "") + (usage.isEmpty() ? "" : " &d" + usage) + " &7(" + c.getShortDescription() + "&7)"));
-                msg.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(ChatColor.GRAY + "/" + container.getName().toLowerCase() + " " + c.getName() + " - " + ChatColor.WHITE + c.getDescription())));
-                msg.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + container.getName() + " " + c.getName()));
-                sender.sendMessage(msg);
+                if (commandService.getAuthorizer().isAuthorized(sender, c, false)) {
+                    String usage = c.getMostApplicableUsage().trim();
+                    TextComponent msg = new TextComponent(net.md_5.bungee.api.ChatColor.translateAlternateColorCodes('&',
+                            "&e - /" + container.getName().toLowerCase() + (c.getName().length() > 0 ? " &d" + c.getName() : "") + (usage.isEmpty() ? "" : " &d" + usage) + " &7(" + c.getShortDescription() + "&7)"));
+                    msg.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(ChatColor.GRAY + "/" + container.getName().toLowerCase() + " " + c.getName() + " - " + ChatColor.WHITE + c.getDescription())));
+                    msg.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + container.getName() + " " + c.getName()));
+                    commands.add(msg);
+                }
             }
-            sender.sendMessage(" ");
+            if (commands.isEmpty()) {
+                sender.sendMessage(commandService.getAuthorizer().getNoPermissionMessage());
+            } else {
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e" + container.getName() + " Commands (&d" + container.getCommands().size() + "&e):"));
+                commands.forEach(sender::sendMessage);
+                sender.sendMessage(" ");
+            }
         };
     }
 

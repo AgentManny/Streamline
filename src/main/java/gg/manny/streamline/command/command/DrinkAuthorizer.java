@@ -13,10 +13,19 @@ public class DrinkAuthorizer {
 
     private String noPermissionMessage = ChatColor.RED + "I'm sorry, but you do not have permission to perform this command.";
 
-    public boolean isAuthorized(@Nonnull CommandSender sender, @Nonnull DrinkCommand command) {
-        if (command.getPermission() != null && command.getPermission().length() > 0) {
-            if (!sender.hasPermission(command.getPermission())) {
-                sender.sendMessage(noPermissionMessage);
+    public boolean isAuthorized(@Nonnull CommandSender sender, @Nonnull DrinkCommand command, boolean notify) {
+        String node = command.getPermission();
+        if (node != null && node.length() > 0) {
+            if (node.equalsIgnoreCase("op") && !sender.isOp()) {
+                if (notify) {
+                    sender.sendMessage(noPermissionMessage);
+                }
+                return false;
+            }
+            if (!sender.hasPermission(node)) {
+                if (notify) {
+                    sender.sendMessage(noPermissionMessage);
+                }
                 return false;
             }
         }
