@@ -1,18 +1,22 @@
 package gg.manny.streamline;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import gg.manny.streamline.command.CommandService;
 import gg.manny.streamline.command.command.DrinkCommandService;
 import gg.manny.streamline.handler.ServerMovementHandler;
 import gg.manny.streamline.handler.ServerPacketHandler;
 import gg.manny.streamline.menu.MenuHandler;
 import gg.manny.streamline.npc.NPCManager;
-import gg.manny.streamline.npc.event.NPCInteractEvent;
 import lombok.Getter;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
+import org.bukkit.Location;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.util.BlockVector;
+import org.bukkit.util.Vector;
 import rip.thecraft.server.CraftServer;
 import rip.thecraft.server.handler.MovementHandler;
 import rip.thecraft.server.handler.PacketHandler;
@@ -25,6 +29,15 @@ import java.util.concurrent.ConcurrentMap;
 public class Streamline extends JavaPlugin implements Listener {
 
     private static final ConcurrentMap<String, CommandService> services = new ConcurrentHashMap<>();
+
+    public static final Gson GSON = new GsonBuilder()
+            .setPrettyPrinting()
+            .serializeNulls()
+            .create();
+
+    public static final Gson PLAIN_GSON = new GsonBuilder()
+            .serializeNulls()
+            .create();
 
     @Getter private static Streamline instance;
 

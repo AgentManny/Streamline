@@ -69,7 +69,7 @@ public class DrinkSpigotRegistry {
                 throw new CommandRegistrationException("Couldn't access knownCommands field in Bukkit CommandMap to unregister existing command(s)");
             }
         }
-
+        container.getCommands().forEach((label, drinkCommand) -> Bukkit.getHelpMap().addTopic(new DrinkHelpTopic(drinkCommand, drinkCommand.getAliases()))); // Register help topic
         return commandMap.register(container.getCommandService().getPlugin().getName(), container);
     }
 

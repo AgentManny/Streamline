@@ -24,12 +24,25 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Plugins -->
         <dependency>
             <groupId>com.github.ProtocolSupport</groupId>
             <artifactId>ProtocolSupport</artifactId>
             <version>4.23.dev</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/libs/ProtocolSupport.jar</systemPath>
+        </dependency>
+
+        <!-- Dependencies -->
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+            <version>3.12.10</version>
+        </dependency>
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>3.7.1</version>
         </dependency>
 
         <dependency>

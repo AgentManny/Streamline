@@ -99,6 +99,7 @@ public class DrinkCommandService implements CommandService {
     public void registerCommands() {
         commands.values().forEach(cmd -> {
             spigotRegistry.register(cmd, cmd.isOverrideExistingCommands());
+
         });
     }
 
