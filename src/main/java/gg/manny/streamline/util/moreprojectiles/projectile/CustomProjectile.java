@@ -1,10 +1,10 @@
-package gg.manny.streamline.moreprojectiles.projectile;
+package gg.manny.streamline.util.moreprojectiles.projectile;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import gg.manny.streamline.moreprojectiles.TypedRunnable;
+import gg.manny.streamline.util.moreprojectiles.TypedRunnable;
 
 import java.util.ArrayList;
 

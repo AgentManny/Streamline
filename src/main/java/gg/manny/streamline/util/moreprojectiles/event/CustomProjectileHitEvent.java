@@ -1,4 +1,4 @@
-package gg.manny.streamline.moreprojectiles.event;
+package gg.manny.streamline.util.moreprojectiles.event;
 
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -7,7 +7,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import gg.manny.streamline.moreprojectiles.projectile.CustomProjectile;
+import gg.manny.streamline.util.moreprojectiles.projectile.CustomProjectile;
 
 /**
  * CustomProjectileHitEvent is fired when custom projectile hits entity or

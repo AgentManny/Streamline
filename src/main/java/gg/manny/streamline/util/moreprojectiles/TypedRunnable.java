@@ -1,4 +1,4 @@
-package gg.manny.streamline.moreprojectiles;
+package gg.manny.streamline.util.moreprojectiles;
 
 public interface TypedRunnable<T> {
 

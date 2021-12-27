@@ -1,52 +1,52 @@
-package gg.manny.streamline.moreprojectiles.projectile;
+package gg.manny.streamline.util.moreprojectiles.projectile;
 
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
+import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_8_R3.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftLivingEntity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Explosive;
 import org.bukkit.entity.LivingEntity;
-import gg.manny.streamline.moreprojectiles.TypedRunnable;
-import gg.manny.streamline.moreprojectiles.event.BlockProjectileHitEvent;
-import gg.manny.streamline.moreprojectiles.event.CustomProjectileHitEvent;
+import org.bukkit.event.entity.ExplosionPrimeEvent;
+import gg.manny.streamline.util.moreprojectiles.TypedRunnable;
+import gg.manny.streamline.util.moreprojectiles.event.CustomProjectileHitEvent;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Projectile made from falling block entity.
+ * Projectile made from primed tnt entity.
  */
-public class BlockProjectile extends EntityFallingBlock implements CustomProjectile<BlockProjectile>, IProjectile {
+public class TNTProjectile extends EntityTNTPrimed implements CustomProjectile<TNTProjectile>, IProjectile {
 
-    private final EntityLiving shooter;
     private final String name;
     private final List<Runnable> runnables = new ArrayList<>();
-    private final List<TypedRunnable<BlockProjectile>> typedRunnables = new ArrayList<>();
+    private final List<TypedRunnable<TNTProjectile>> typedRunnables = new ArrayList<>();
     private int age;
-    private int knockback = 0;
-    private Field f;
+    private int knockback;
     private ArrayList<Material> ignoredMaterials = new ArrayList<>();
+    private Field f;
 
     /**
-     * Instantiates a new block projectile.
+     * Instantiates a new primed tnt projectile.
      *
      * @param name    projectile name
      * @param loc     location of projectile (sets position of projectile and shoots in pitch
      *                and yaw direction)
-     * @param blockId block id
-     * @param data    damage value of block
      * @param shooter projectile shooter
      * @param power   projectile power
      */
-    public BlockProjectile(String name, Location loc, int blockId, int data, LivingEntity shooter, float power) {
-        super(((CraftWorld) loc.getWorld()).getHandle(), loc.getX(), loc.getY(), loc.getZ(), Block.getById(blockId).fromLegacyData(data));
-        this.shooter = ((CraftLivingEntity) shooter).getHandle();
+    public TNTProjectile(String name, Location loc, LivingEntity shooter, float power) {
+        super(loc, ((CraftWorld) loc.getWorld()).getHandle(), loc.getX(), loc.getY(), loc.getZ(), ((CraftLivingEntity) shooter).getHandle());
         this.name = name;
+        this.fuseTicks = 20;
         this.a(0.25F, 0.25F);
         setPositionRotation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
         locX -= (MathHelper.cos(yaw / 180.0F * 3.1415927F) * 0.16F);
@@ -59,7 +59,6 @@ public class BlockProjectile extends EntityFallingBlock implements CustomProject
         motY = (-MathHelper.sin(pitch / 180.0F * 3.1415927F) * f);
         shoot(motX, motY, motZ, power * 1.5F, 1.0F);
         world.addEntity(this);
-        this.dropItem = false;
         try {
             this.f = Entity.class.getDeclaredField("invulnerable");
         } catch (NoSuchFieldException e) {
@@ -68,19 +67,17 @@ public class BlockProjectile extends EntityFallingBlock implements CustomProject
     }
 
     /**
-     * Instantiates a new block projectile.
+     * Instantiates a new primed tnt projectile.
      *
      * @param name    projectile name
      * @param shooter projectile shooter (it uses entity's location to set x, y, z, pitch and
      *                yaw of projectile)
-     * @param blockId block id
-     * @param data    damage value of block
      * @param power   projectile power
      */
-    public BlockProjectile(String name, LivingEntity shooter, int blockId, int data, float power) {
-        super(((CraftLivingEntity) shooter).getHandle().world, shooter.getLocation().getX(), shooter.getLocation().getX(), shooter.getLocation().getX(), Block.getByCombinedId(blockId + (data << 12)));
-        this.shooter = ((CraftLivingEntity) shooter).getHandle();
+    public TNTProjectile(String name, LivingEntity shooter, float power) {
+        super(shooter.getLocation(), ((CraftLivingEntity) shooter).getHandle().world, shooter.getLocation().getX(), shooter.getLocation().getX(), shooter.getLocation().getX(), ((CraftLivingEntity) shooter).getHandle());
         this.name = name;
+        this.fuseTicks = 20;
         this.a(0.25F, 0.25F);
         setPositionRotation(shooter.getLocation().getX(), shooter.getLocation().getY() + shooter.getEyeHeight(), shooter.getLocation().getZ(), shooter.getLocation().getYaw(), shooter.getLocation().getPitch());
         locX -= (MathHelper.cos(yaw / 180.0F * 3.1415927F) * 0.16F);
@@ -93,7 +90,6 @@ public class BlockProjectile extends EntityFallingBlock implements CustomProject
         motY = (-MathHelper.sin(pitch / 180.0F * 3.1415927F) * f);
         shoot(motX, motY, motZ, power * 1.5F, 1.0F);
         world.addEntity(this);
-        this.dropItem = false;
         try {
             this.f = Entity.class.getDeclaredField("invulnerable");
         } catch (NoSuchFieldException e) {
@@ -123,7 +119,7 @@ public class BlockProjectile extends EntityFallingBlock implements CustomProject
 
     @Override
     public EntityType getEntityType() {
-        return EntityType.FALLING_BLOCK;
+        return EntityType.PRIMED_TNT;
     }
 
     @Override
@@ -133,12 +129,25 @@ public class BlockProjectile extends EntityFallingBlock implements CustomProject
 
     @Override
     public LivingEntity getShooter() {
-        return (LivingEntity) shooter.getBukkitEntity();
+        return (LivingEntity) getSource().getBukkitEntity();
+    }
+
+    @Override
+    public String getProjectileName() {
+        return name;
     }
 
     @Override
     public void t_() {
         K();
+        if (this.fuseTicks-- <= 0) {
+            if (!(this.world.isClientSide)) {
+                explode();
+            }
+            die();
+        } else {
+            this.world.addParticle(EnumParticle.SMOKE_LARGE, this.locX, this.locY + 0.5D, this.locZ, 0.0D, 0.0D, 0.0D);
+        }
         BlockPosition blockposition = new BlockPosition(locX, locY, locZ);
         IBlockData iblockdata = world.getType(blockposition);
         Block block = iblockdata.getBlock();
@@ -148,7 +157,7 @@ public class BlockProjectile extends EntityFallingBlock implements CustomProject
 
             if ((axisalignedbb != null) && (axisalignedbb.a(new Vec3D(locX, locY, locZ)))) {
                 float damageMultiplier = MathHelper.sqrt(motX * motX + motY * motY + motZ * motZ);
-                CustomProjectileHitEvent event = new BlockProjectileHitEvent(this, damageMultiplier, world.getWorld().getBlockAt((int) locX, (int) locY, (int) locZ), BlockFace.UP, getMaterial(), getData());
+                CustomProjectileHitEvent event = new CustomProjectileHitEvent(this, damageMultiplier, world.getWorld().getBlockAt((int) locX, (int) locY, (int) locZ), BlockFace.UP);
                 Bukkit.getPluginManager().callEvent(event);
                 if (!event.isCancelled()) {
                     die();
@@ -167,13 +176,13 @@ public class BlockProjectile extends EntityFallingBlock implements CustomProject
         }
 
         Entity entity = null;
-        List list = world.getEntities(this, getBoundingBox().a(motX, motY, motZ).grow(2.0D, 2.0D, 2.0D));
+        List list = world.getEntities(this, getBoundingBox().a(motX, motY, motZ).grow(1.0D, 1.0D, 1.0D));
         double d0 = 0.0D;
 
         for (Object aList : list) {
             Entity entity1 = (Entity) aList;
 
-            if ((entity1.ad()) && ((entity1 != shooter) || (age >= 5))) {
+            if ((entity1.ad()) && ((entity1 != getSource()) || (age >= 5))) {
                 float f1 = 0.3F;
                 AxisAlignedBB axisalignedbb1 = entity1.getBoundingBox().grow(f1, f1, f1);
                 MovingObjectPosition movingobjectposition1 = axisalignedbb1.a(vec3d, vec3d1);
@@ -196,7 +205,7 @@ public class BlockProjectile extends EntityFallingBlock implements CustomProject
         if ((movingobjectposition != null) && (movingobjectposition.entity != null) && ((movingobjectposition.entity instanceof EntityHuman))) {
             EntityHuman entityhuman = (EntityHuman) movingobjectposition.entity;
 
-            if ((entityhuman.abilities.isInvulnerable) || (((shooter instanceof EntityHuman)) && (!((EntityHuman) shooter).a(entityhuman)))) {
+            if ((entityhuman.abilities.isInvulnerable) || (((getSource() instanceof EntityHuman)) && (!((EntityHuman) getSource()).a(entityhuman)))) {
                 movingobjectposition = null;
             }
 
@@ -205,7 +214,7 @@ public class BlockProjectile extends EntityFallingBlock implements CustomProject
         if (movingobjectposition != null) {
             if (movingobjectposition.entity != null && movingobjectposition.entity instanceof EntityLiving) {
                 float damageMultiplier = MathHelper.sqrt(motX * motX + motY * motY + motZ * motZ);
-                CustomProjectileHitEvent event = new BlockProjectileHitEvent(this, damageMultiplier, (LivingEntity) movingobjectposition.entity.getBukkitEntity(), getMaterial(), getData());
+                CustomProjectileHitEvent event = new CustomProjectileHitEvent(this, damageMultiplier, (LivingEntity) movingobjectposition.entity.getBukkitEntity());
                 Bukkit.getPluginManager().callEvent(event);
                 if (!event.isCancelled()) {
                     if (getKnockback() > 0) {
@@ -226,7 +235,7 @@ public class BlockProjectile extends EntityFallingBlock implements CustomProject
                     locY -= motY / f3 * 0.0500000007450581D;
                     locZ -= motZ / f3 * 0.0500000007450581D;
                     float damageMultiplier = MathHelper.sqrt(motX * motX + motY * motY + motZ * motZ);
-                    CustomProjectileHitEvent event = new BlockProjectileHitEvent(this, damageMultiplier, world.getWorld().getBlockAt((int) movingobjectposition.pos.a, (int) movingobjectposition.pos.b, (int) movingobjectposition.pos.c), CraftBlock.notchToBlockFace(movingobjectposition.direction), getMaterial(), getData());
+                    CustomProjectileHitEvent event = new CustomProjectileHitEvent(this, damageMultiplier, world.getWorld().getBlockAt((int) movingobjectposition.pos.a, (int) movingobjectposition.pos.b, (int) movingobjectposition.pos.c), CraftBlock.notchToBlockFace(movingobjectposition.direction));
                     Bukkit.getPluginManager().callEvent(event);
                     if (!event.isCancelled()) {
                         die();
@@ -253,34 +262,34 @@ public class BlockProjectile extends EntityFallingBlock implements CustomProject
             for (Runnable r : runnables) {
                 r.run();
             }
-            for (TypedRunnable<BlockProjectile> r : typedRunnables) {
+            for (TypedRunnable<TNTProjectile> r : typedRunnables) {
                 r.run(this);
             }
         }
     }
 
+    /**
+     * Method added because of visibility of the original.
+     */
+    private void explode() {
+        CraftServer server = this.world.getServer();
+
+        ExplosionPrimeEvent event = new ExplosionPrimeEvent((Explosive) CraftEntity.getEntity(server, this));
+        server.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) return;
+        this.world.createExplosion(this, this.locX, this.locY, this.locZ, event.getRadius(), event.getFire(), true);
+    }
+
     @Override
-    public String getProjectileName() {
-        return name;
-    }
-
-    /**
-     * Gets the block id.
-     *
-     * @return the block id
-     */
-    @SuppressWarnings("deprecation")
-    public Material getMaterial() {
-        return Material.getMaterial(getId());
-    }
-
-    /**
-     * Gets the damage value of block.
-     *
-     * @return the data
-     */
-    public int getData() {
-        return getBlock().getBlock().toLegacyData(getBlock());
+    public void d(EntityHuman entityhuman) {
+        if (entityhuman == getSource() && age <= 3) return;
+        LivingEntity living = entityhuman.getBukkitEntity();
+        CustomProjectileHitEvent event = new CustomProjectileHitEvent(this, 0.5F, living);
+        Bukkit.getPluginManager().callEvent(event);
+        if (!event.isCancelled()) {
+            die();
+        }
     }
 
     @Override
@@ -309,12 +318,12 @@ public class BlockProjectile extends EntityFallingBlock implements CustomProject
     }
 
     @Override
-    public void addTypedRunnable(TypedRunnable<BlockProjectile> r) {
+    public void addTypedRunnable(TypedRunnable<TNTProjectile> r) {
         typedRunnables.add(r);
     }
 
     @Override
-    public void removeTypedRunnable(TypedRunnable<BlockProjectile> r) {
+    public void removeTypedRunnable(TypedRunnable<TNTProjectile> r) {
         typedRunnables.remove(r);
     }
 

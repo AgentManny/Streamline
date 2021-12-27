@@ -1,9 +1,5 @@
-package gg.manny.streamline.moreprojectiles.projectile;
+package gg.manny.streamline.util.moreprojectiles.projectile;
 
-import gg.manny.streamline.Streamline;
-import gg.manny.streamline.moreprojectiles.TypedRunnable;
-import gg.manny.streamline.moreprojectiles.event.CustomProjectileHitEvent;
-import gg.manny.streamline.moreprojectiles.event.ItemProjectileHitEvent;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -12,53 +8,44 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_8_R3.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftLivingEntity;
-import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.metadata.FixedMetadataValue;
+import gg.manny.streamline.util.moreprojectiles.TypedRunnable;
+import gg.manny.streamline.util.moreprojectiles.event.CustomProjectileHitEvent;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Projectile made from item entity
+ * Projectile made from exp orb entity. Warning! Becouse of minecraft bug client
+ * see orb after delay of about 1 second. I couldn't find any solution for that
+ * :/
  */
-public class ItemProjectile extends EntityItem implements IProjectile, CustomProjectile<ItemProjectile> {
+public class OrbProjectile extends EntityExperienceOrb implements CustomProjectile<OrbProjectile>, IProjectile {
 
     private final EntityLiving shooter;
     private final String name;
     private final List<Runnable> runnables = new ArrayList<>();
-    private final List<TypedRunnable<ItemProjectile>> typedRunnables = new ArrayList<>();
-    private int knockback;
+    private final List<TypedRunnable<OrbProjectile>> typedRunnables = new ArrayList<>();
     private int age;
+    private int knockback;
     private ArrayList<Material> ignoredMaterials = new ArrayList<>();
     private Field f;
 
-    public static FixedMetadataValue meta = new FixedMetadataValue(Streamline.getInstance(), true);
-
     /**
-     * Instantiates a new item projectile.
+     * Instantiates a new orb projectile.
      *
-     * @param name      projectile name
-     * @param loc       location of projectile (sets position of projectile and shoots in pitch
-     *                  and yaw direction)
-     * @param itemstack item stack to shoot
-     * @param shooter   projectile shooter
-     * @param power     projectile power
+     * @param name    projectile name
+     * @param loc     location of projectile (sets position of projectile and shoots in pitch
+     *                and yaw direction)
+     * @param shooter projectile shooter
+     * @param power   projectile power
      */
-    @SuppressWarnings("deprecation")
-    public ItemProjectile(String name, Location loc, ItemStack itemstack, LivingEntity shooter, float power) {
-        super(((CraftWorld) loc.getWorld()).getHandle(), loc.getX(), loc.getY(), loc.getZ(), null);
-        if (CraftItemStack.asNMSCopy(itemstack) != null) setItemStack(CraftItemStack.asNMSCopy(itemstack));
-        else
-            setItemStack(new net.minecraft.server.v1_8_R3.ItemStack(Item.getById(itemstack.getTypeId()), itemstack.getAmount(), itemstack.getData().getData()));
-        if (itemstack.getTypeId() == 0) System.out.println("You cannot shoot air!");
-        getEntity().setMetadata("itemprojectile", meta);
-        this.name = name;
-        this.pickupDelay = Integer.MAX_VALUE;
+    public OrbProjectile(String name, Location loc, LivingEntity shooter, float power) {
+        super(((CraftWorld) loc.getWorld()).getHandle(), loc.getX(), loc.getY(), loc.getZ(), 0);
         this.shooter = ((CraftLivingEntity) shooter).getHandle();
+        this.name = name;
         this.a(0.25F, 0.25F);
         setPositionRotation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
         locX -= (MathHelper.cos(yaw / 180.0F * 3.1415927F) * 0.16F);
@@ -79,21 +66,17 @@ public class ItemProjectile extends EntityItem implements IProjectile, CustomPro
     }
 
     /**
-     * Instantiates a new item projectile.
+     * Instantiates a new orb projectile.
      *
      * @param name    projectile name
      * @param shooter projectile shooter (it uses entity's location to set x, y, z, pitch and
      *                yaw of projectile)
-     * @param item    item stack to shoot
      * @param power   projectile power
      */
-    public ItemProjectile(String name, LivingEntity shooter, ItemStack item, float power) {
-        super(((CraftLivingEntity) shooter).getHandle().world);
-        this.name = name;
-        this.pickupDelay = Integer.MAX_VALUE;
-        setItemStack(CraftItemStack.asNMSCopy(item));
-        getEntity().setMetadata("itemprojectile", meta);
+    public OrbProjectile(String name, LivingEntity shooter, float power) {
+        super(((CraftLivingEntity) shooter).getHandle().world, shooter.getLocation().getX(), shooter.getLocation().getX(), shooter.getLocation().getX(), 0);
         this.shooter = ((CraftLivingEntity) shooter).getHandle();
+        this.name = name;
         this.a(0.25F, 0.25F);
         setPositionRotation(shooter.getLocation().getX(), shooter.getLocation().getY() + shooter.getEyeHeight(), shooter.getLocation().getZ(), shooter.getLocation().getYaw(), shooter.getLocation().getPitch());
         locX -= (MathHelper.cos(yaw / 180.0F * 3.1415927F) * 0.16F);
@@ -114,6 +97,48 @@ public class ItemProjectile extends EntityItem implements IProjectile, CustomPro
     }
 
     @Override
+    public void shoot(double d0, double d1, double d2, float f, float f1) {
+        float f2 = MathHelper.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
+
+        d0 /= f2;
+        d1 /= f2;
+        d2 /= f2;
+        d0 += random.nextGaussian() * 0.007499999832361937D * f1;
+        d1 += random.nextGaussian() * 0.007499999832361937D * f1;
+        d2 += random.nextGaussian() * 0.007499999832361937D * f1;
+        d0 *= f;
+        d1 *= f;
+        d2 *= f;
+        motX = d0;
+        motY = d1;
+        motZ = d2;
+        float f3 = MathHelper.sqrt(d0 * d0 + d2 * d2);
+
+        lastYaw = yaw = (float) (Math.atan2(d0, d2) * 180.0D / 3.1415927410125732D);
+        lastPitch = pitch = (float) (Math.atan2(d1, f3) * 180.0D / 3.1415927410125732D);
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.EXPERIENCE_ORB;
+    }
+
+    @Override
+    public org.bukkit.entity.Entity getEntity() {
+        return getBukkitEntity();
+    }
+
+    @Override
+    public LivingEntity getShooter() {
+        return (LivingEntity) shooter.getBukkitEntity();
+    }
+
+    @Override
+    public String getProjectileName() {
+        return name;
+    }
+
+    @Override
     public void t_() {
         K();
         BlockPosition blockposition = new BlockPosition(locX, locY, locZ);
@@ -125,7 +150,7 @@ public class ItemProjectile extends EntityItem implements IProjectile, CustomPro
 
             if ((axisalignedbb != null) && (axisalignedbb.a(new Vec3D(locX, locY, locZ)))) {
                 float damageMultiplier = MathHelper.sqrt(motX * motX + motY * motY + motZ * motZ);
-                CustomProjectileHitEvent event = new ItemProjectileHitEvent(this, damageMultiplier, world.getWorld().getBlockAt((int) locX, (int) locY, (int) locZ), BlockFace.UP, getItem());
+                CustomProjectileHitEvent event = new CustomProjectileHitEvent(this, damageMultiplier, world.getWorld().getBlockAt((int) locX, (int) locY, (int) locZ), BlockFace.UP);
                 Bukkit.getPluginManager().callEvent(event);
                 if (!event.isCancelled()) {
                     die();
@@ -165,19 +190,24 @@ public class ItemProjectile extends EntityItem implements IProjectile, CustomPro
                 }
             }
         }
+
         if (entity != null) {
             movingobjectposition = new MovingObjectPosition(entity);
         }
+
         if ((movingobjectposition != null) && (movingobjectposition.entity != null) && ((movingobjectposition.entity instanceof EntityHuman))) {
             EntityHuman entityhuman = (EntityHuman) movingobjectposition.entity;
+
             if ((entityhuman.abilities.isInvulnerable) || (((shooter instanceof EntityHuman)) && (!((EntityHuman) shooter).a(entityhuman)))) {
                 movingobjectposition = null;
             }
+
         }
+
         if (movingobjectposition != null) {
             if (movingobjectposition.entity != null && movingobjectposition.entity instanceof EntityLiving) {
                 float damageMultiplier = MathHelper.sqrt(motX * motX + motY * motY + motZ * motZ);
-                CustomProjectileHitEvent event = new ItemProjectileHitEvent(this, damageMultiplier, (LivingEntity) movingobjectposition.entity.getBukkitEntity(), getItem());
+                CustomProjectileHitEvent event = new CustomProjectileHitEvent(this, damageMultiplier, (LivingEntity) movingobjectposition.entity.getBukkitEntity());
                 Bukkit.getPluginManager().callEvent(event);
                 if (!event.isCancelled()) {
                     if (getKnockback() > 0) {
@@ -198,7 +228,7 @@ public class ItemProjectile extends EntityItem implements IProjectile, CustomPro
                     locY -= motY / f3 * 0.0500000007450581D;
                     locZ -= motZ / f3 * 0.0500000007450581D;
                     float damageMultiplier = MathHelper.sqrt(motX * motX + motY * motY + motZ * motZ);
-                    CustomProjectileHitEvent event = new ItemProjectileHitEvent(this, damageMultiplier, world.getWorld().getBlockAt((int) movingobjectposition.pos.a, (int) movingobjectposition.pos.b, (int) movingobjectposition.pos.c), CraftBlock.notchToBlockFace(movingobjectposition.direction), getItem());
+                    CustomProjectileHitEvent event = new CustomProjectileHitEvent(this, damageMultiplier, world.getWorld().getBlockAt((int) movingobjectposition.pos.a, (int) movingobjectposition.pos.b, (int) movingobjectposition.pos.c), CraftBlock.notchToBlockFace(movingobjectposition.direction));
                     Bukkit.getPluginManager().callEvent(event);
                     if (!event.isCancelled()) {
                         die();
@@ -225,72 +255,21 @@ public class ItemProjectile extends EntityItem implements IProjectile, CustomPro
             for (Runnable r : runnables) {
                 r.run();
             }
-            for (TypedRunnable<ItemProjectile> r : typedRunnables) {
+            for (TypedRunnable<OrbProjectile> r : typedRunnables) {
                 r.run(this);
             }
         }
     }
 
     @Override
-    public void shoot(double d0, double d1, double d2, float f, float f1) {
-        float f2 = MathHelper.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
-
-        d0 /= f2;
-        d1 /= f2;
-        d2 /= f2;
-        d0 += random.nextGaussian() * 0.007499999832361937D * f1;
-        d1 += random.nextGaussian() * 0.007499999832361937D * f1;
-        d2 += random.nextGaussian() * 0.007499999832361937D * f1;
-        d0 *= f;
-        d1 *= f;
-        d2 *= f;
-        motX = d0;
-        motY = d1;
-        motZ = d2;
-        float f3 = MathHelper.sqrt(d0 * d0 + d2 * d2);
-
-        lastYaw = yaw = (float) (Math.atan2(d0, d2) * 180.0D / 3.1415927410125732D);
-        lastPitch = pitch = (float) (Math.atan2(d1, f3) * 180.0D / 3.1415927410125732D);
-    }
-
-    @Override
-    public EntityType getEntityType() {
-        return EntityType.DROPPED_ITEM;
-    }
-
-    @Override
-    public org.bukkit.entity.Entity getEntity() {
-        return getBukkitEntity();
-    }
-
-    @Override
-    public LivingEntity getShooter() {
-        return (LivingEntity) shooter.getBukkitEntity();
-    }
-
-    @Override
     public void d(EntityHuman entityhuman) {
         if (entityhuman == shooter && age <= 3) return;
         LivingEntity living = entityhuman.getBukkitEntity();
-        CustomProjectileHitEvent event = new ItemProjectileHitEvent(this, 0.5F, living, getItem());
+        CustomProjectileHitEvent event = new CustomProjectileHitEvent(this, 0.5F, living);
         Bukkit.getPluginManager().callEvent(event);
         if (!event.isCancelled()) {
             die();
         }
-    }
-
-    @Override
-    public String getProjectileName() {
-        return name;
-    }
-
-    /**
-     * Gets the item.
-     *
-     * @return the item
-     */
-    public ItemStack getItem() {
-        return CraftItemStack.asCraftMirror(getItemStack());
     }
 
     @Override
@@ -319,28 +298,18 @@ public class ItemProjectile extends EntityItem implements IProjectile, CustomPro
     }
 
     @Override
-    public void addTypedRunnable(TypedRunnable<ItemProjectile> r) {
+    public void addTypedRunnable(TypedRunnable<OrbProjectile> r) {
         typedRunnables.add(r);
     }
 
     @Override
-    public void removeTypedRunnable(TypedRunnable<ItemProjectile> r) {
+    public void removeTypedRunnable(TypedRunnable<OrbProjectile> r) {
         typedRunnables.remove(r);
     }
 
     @Override
     public ArrayList<Material> getIgnoredBlocks() {
         return ignoredMaterials;
-    }
-
-    @Override
-    public net.minecraft.server.v1_8_R3.ItemStack getItemStack() {
-        net.minecraft.server.v1_8_R3.ItemStack itemstack = getDataWatcher().getItemStack(10);
-
-        if (itemstack == null) {
-            return new net.minecraft.server.v1_8_R3.ItemStack(Blocks.STONE);
-        }
-        return itemstack;
     }
 
     @Override
@@ -352,6 +321,5 @@ public class ItemProjectile extends EntityItem implements IProjectile, CustomPro
     public void setKnockback(int i) {
         knockback = i;
     }
-
 
 }

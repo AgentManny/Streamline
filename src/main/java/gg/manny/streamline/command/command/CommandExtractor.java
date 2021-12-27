@@ -52,7 +52,7 @@ public class CommandExtractor {
                 perm = require.value();
             } else if (method.getDeclaringClass().isAnnotationPresent(Require.class)) {
                 Require require = method.getDeclaringClass().getAnnotation(Require.class);
-                perm = require.value();
+                perm = require.value() + command.name();
             }
             DrinkCommand drinkCommand = new DrinkCommand(
                     commandService, command.name(), Sets.newHashSet(command.aliases()), command.desc(), command.usage(),

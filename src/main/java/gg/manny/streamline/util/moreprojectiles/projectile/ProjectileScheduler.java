@@ -1,4 +1,4 @@
-package gg.manny.streamline.moreprojectiles.projectile;
+package gg.manny.streamline.util.moreprojectiles.projectile;
 
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Bukkit;
@@ -10,8 +10,8 @@ import org.bukkit.craftbukkit.v1_8_R3.entity.CraftLivingEntity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.plugin.Plugin;
-import gg.manny.streamline.moreprojectiles.TypedRunnable;
-import gg.manny.streamline.moreprojectiles.event.CustomProjectileHitEvent;
+import gg.manny.streamline.util.moreprojectiles.TypedRunnable;
+import gg.manny.streamline.util.moreprojectiles.event.CustomProjectileHitEvent;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;

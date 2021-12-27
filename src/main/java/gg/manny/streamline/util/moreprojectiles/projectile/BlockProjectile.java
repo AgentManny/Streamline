@@ -1,4 +1,4 @@
-package gg.manny.streamline.moreprojectiles.projectile;
+package gg.manny.streamline.util.moreprojectiles.projectile;
 
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Bukkit;
@@ -10,40 +10,41 @@ import org.bukkit.craftbukkit.v1_8_R3.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftLivingEntity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import gg.manny.streamline.moreprojectiles.TypedRunnable;
-import gg.manny.streamline.moreprojectiles.event.CustomProjectileHitEvent;
+import gg.manny.streamline.util.moreprojectiles.TypedRunnable;
+import gg.manny.streamline.util.moreprojectiles.event.BlockProjectileHitEvent;
+import gg.manny.streamline.util.moreprojectiles.event.CustomProjectileHitEvent;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Projectile made from exp orb entity. Warning! Becouse of minecraft bug client
- * see orb after delay of about 1 second. I couldn't find any solution for that
- * :/
+ * Projectile made from falling block entity.
  */
-public class OrbProjectile extends EntityExperienceOrb implements CustomProjectile<OrbProjectile>, IProjectile {
+public class BlockProjectile extends EntityFallingBlock implements CustomProjectile<BlockProjectile>, IProjectile {
 
     private final EntityLiving shooter;
     private final String name;
     private final List<Runnable> runnables = new ArrayList<>();
-    private final List<TypedRunnable<OrbProjectile>> typedRunnables = new ArrayList<>();
+    private final List<TypedRunnable<BlockProjectile>> typedRunnables = new ArrayList<>();
     private int age;
-    private int knockback;
-    private ArrayList<Material> ignoredMaterials = new ArrayList<>();
+    private int knockback = 0;
     private Field f;
+    private ArrayList<Material> ignoredMaterials = new ArrayList<>();
 
     /**
-     * Instantiates a new orb projectile.
+     * Instantiates a new block projectile.
      *
      * @param name    projectile name
      * @param loc     location of projectile (sets position of projectile and shoots in pitch
      *                and yaw direction)
+     * @param blockId block id
+     * @param data    damage value of block
      * @param shooter projectile shooter
      * @param power   projectile power
      */
-    public OrbProjectile(String name, Location loc, LivingEntity shooter, float power) {
-        super(((CraftWorld) loc.getWorld()).getHandle(), loc.getX(), loc.getY(), loc.getZ(), 0);
+    public BlockProjectile(String name, Location loc, int blockId, int data, LivingEntity shooter, float power) {
+        super(((CraftWorld) loc.getWorld()).getHandle(), loc.getX(), loc.getY(), loc.getZ(), Block.getById(blockId).fromLegacyData(data));
         this.shooter = ((CraftLivingEntity) shooter).getHandle();
         this.name = name;
         this.a(0.25F, 0.25F);
@@ -58,6 +59,7 @@ public class OrbProjectile extends EntityExperienceOrb implements CustomProjecti
         motY = (-MathHelper.sin(pitch / 180.0F * 3.1415927F) * f);
         shoot(motX, motY, motZ, power * 1.5F, 1.0F);
         world.addEntity(this);
+        this.dropItem = false;
         try {
             this.f = Entity.class.getDeclaredField("invulnerable");
         } catch (NoSuchFieldException e) {
@@ -66,15 +68,17 @@ public class OrbProjectile extends EntityExperienceOrb implements CustomProjecti
     }
 
     /**
-     * Instantiates a new orb projectile.
+     * Instantiates a new block projectile.
      *
      * @param name    projectile name
      * @param shooter projectile shooter (it uses entity's location to set x, y, z, pitch and
      *                yaw of projectile)
+     * @param blockId block id
+     * @param data    damage value of block
      * @param power   projectile power
      */
-    public OrbProjectile(String name, LivingEntity shooter, float power) {
-        super(((CraftLivingEntity) shooter).getHandle().world, shooter.getLocation().getX(), shooter.getLocation().getX(), shooter.getLocation().getX(), 0);
+    public BlockProjectile(String name, LivingEntity shooter, int blockId, int data, float power) {
+        super(((CraftLivingEntity) shooter).getHandle().world, shooter.getLocation().getX(), shooter.getLocation().getX(), shooter.getLocation().getX(), Block.getByCombinedId(blockId + (data << 12)));
         this.shooter = ((CraftLivingEntity) shooter).getHandle();
         this.name = name;
         this.a(0.25F, 0.25F);
@@ -89,6 +93,7 @@ public class OrbProjectile extends EntityExperienceOrb implements CustomProjecti
         motY = (-MathHelper.sin(pitch / 180.0F * 3.1415927F) * f);
         shoot(motX, motY, motZ, power * 1.5F, 1.0F);
         world.addEntity(this);
+        this.dropItem = false;
         try {
             this.f = Entity.class.getDeclaredField("invulnerable");
         } catch (NoSuchFieldException e) {
@@ -99,7 +104,6 @@ public class OrbProjectile extends EntityExperienceOrb implements CustomProjecti
     @Override
     public void shoot(double d0, double d1, double d2, float f, float f1) {
         float f2 = MathHelper.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
-
         d0 /= f2;
         d1 /= f2;
         d2 /= f2;
@@ -113,14 +117,13 @@ public class OrbProjectile extends EntityExperienceOrb implements CustomProjecti
         motY = d1;
         motZ = d2;
         float f3 = MathHelper.sqrt(d0 * d0 + d2 * d2);
-
         lastYaw = yaw = (float) (Math.atan2(d0, d2) * 180.0D / 3.1415927410125732D);
         lastPitch = pitch = (float) (Math.atan2(d1, f3) * 180.0D / 3.1415927410125732D);
     }
 
     @Override
     public EntityType getEntityType() {
-        return EntityType.EXPERIENCE_ORB;
+        return EntityType.FALLING_BLOCK;
     }
 
     @Override
@@ -131,11 +134,6 @@ public class OrbProjectile extends EntityExperienceOrb implements CustomProjecti
     @Override
     public LivingEntity getShooter() {
         return (LivingEntity) shooter.getBukkitEntity();
-    }
-
-    @Override
-    public String getProjectileName() {
-        return name;
     }
 
     @Override
@@ -150,7 +148,7 @@ public class OrbProjectile extends EntityExperienceOrb implements CustomProjecti
 
             if ((axisalignedbb != null) && (axisalignedbb.a(new Vec3D(locX, locY, locZ)))) {
                 float damageMultiplier = MathHelper.sqrt(motX * motX + motY * motY + motZ * motZ);
-                CustomProjectileHitEvent event = new CustomProjectileHitEvent(this, damageMultiplier, world.getWorld().getBlockAt((int) locX, (int) locY, (int) locZ), BlockFace.UP);
+                CustomProjectileHitEvent event = new BlockProjectileHitEvent(this, damageMultiplier, world.getWorld().getBlockAt((int) locX, (int) locY, (int) locZ), BlockFace.UP, getMaterial(), getData());
                 Bukkit.getPluginManager().callEvent(event);
                 if (!event.isCancelled()) {
                     die();
@@ -169,7 +167,7 @@ public class OrbProjectile extends EntityExperienceOrb implements CustomProjecti
         }
 
         Entity entity = null;
-        List list = world.getEntities(this, getBoundingBox().a(motX, motY, motZ).grow(1.0D, 1.0D, 1.0D));
+        List list = world.getEntities(this, getBoundingBox().a(motX, motY, motZ).grow(2.0D, 2.0D, 2.0D));
         double d0 = 0.0D;
 
         for (Object aList : list) {
@@ -207,7 +205,7 @@ public class OrbProjectile extends EntityExperienceOrb implements CustomProjecti
         if (movingobjectposition != null) {
             if (movingobjectposition.entity != null && movingobjectposition.entity instanceof EntityLiving) {
                 float damageMultiplier = MathHelper.sqrt(motX * motX + motY * motY + motZ * motZ);
-                CustomProjectileHitEvent event = new CustomProjectileHitEvent(this, damageMultiplier, (LivingEntity) movingobjectposition.entity.getBukkitEntity());
+                CustomProjectileHitEvent event = new BlockProjectileHitEvent(this, damageMultiplier, (LivingEntity) movingobjectposition.entity.getBukkitEntity(), getMaterial(), getData());
                 Bukkit.getPluginManager().callEvent(event);
                 if (!event.isCancelled()) {
                     if (getKnockback() > 0) {
@@ -228,7 +226,7 @@ public class OrbProjectile extends EntityExperienceOrb implements CustomProjecti
                     locY -= motY / f3 * 0.0500000007450581D;
                     locZ -= motZ / f3 * 0.0500000007450581D;
                     float damageMultiplier = MathHelper.sqrt(motX * motX + motY * motY + motZ * motZ);
-                    CustomProjectileHitEvent event = new CustomProjectileHitEvent(this, damageMultiplier, world.getWorld().getBlockAt((int) movingobjectposition.pos.a, (int) movingobjectposition.pos.b, (int) movingobjectposition.pos.c), CraftBlock.notchToBlockFace(movingobjectposition.direction));
+                    CustomProjectileHitEvent event = new BlockProjectileHitEvent(this, damageMultiplier, world.getWorld().getBlockAt((int) movingobjectposition.pos.a, (int) movingobjectposition.pos.b, (int) movingobjectposition.pos.c), CraftBlock.notchToBlockFace(movingobjectposition.direction), getMaterial(), getData());
                     Bukkit.getPluginManager().callEvent(event);
                     if (!event.isCancelled()) {
                         die();
@@ -255,21 +253,34 @@ public class OrbProjectile extends EntityExperienceOrb implements CustomProjecti
             for (Runnable r : runnables) {
                 r.run();
             }
-            for (TypedRunnable<OrbProjectile> r : typedRunnables) {
+            for (TypedRunnable<BlockProjectile> r : typedRunnables) {
                 r.run(this);
             }
         }
     }
 
     @Override
-    public void d(EntityHuman entityhuman) {
-        if (entityhuman == shooter && age <= 3) return;
-        LivingEntity living = entityhuman.getBukkitEntity();
-        CustomProjectileHitEvent event = new CustomProjectileHitEvent(this, 0.5F, living);
-        Bukkit.getPluginManager().callEvent(event);
-        if (!event.isCancelled()) {
-            die();
-        }
+    public String getProjectileName() {
+        return name;
+    }
+
+    /**
+     * Gets the block id.
+     *
+     * @return the block id
+     */
+    @SuppressWarnings("deprecation")
+    public Material getMaterial() {
+        return Material.getMaterial(getId());
+    }
+
+    /**
+     * Gets the damage value of block.
+     *
+     * @return the data
+     */
+    public int getData() {
+        return getBlock().getBlock().toLegacyData(getBlock());
     }
 
     @Override
@@ -298,12 +309,12 @@ public class OrbProjectile extends EntityExperienceOrb implements CustomProjecti
     }
 
     @Override
-    public void addTypedRunnable(TypedRunnable<OrbProjectile> r) {
+    public void addTypedRunnable(TypedRunnable<BlockProjectile> r) {
         typedRunnables.add(r);
     }
 
     @Override
-    public void removeTypedRunnable(TypedRunnable<OrbProjectile> r) {
+    public void removeTypedRunnable(TypedRunnable<BlockProjectile> r) {
         typedRunnables.remove(r);
     }
 

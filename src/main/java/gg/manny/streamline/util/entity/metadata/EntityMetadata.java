@@ -1,8 +1,9 @@
-package gg.manny.streamline.entity.metadata;
+package gg.manny.streamline.util.entity.metadata;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.minecraft.server.v1_8_R3.ItemStack;
 import org.bukkit.entity.Entity;
 
 @Getter
@@ -21,6 +22,10 @@ public enum EntityMetadata implements IEntityMetadata<Entity> {
 
     SILENT(4, Boolean.class, false),
     NO_GRAVITY(5, Boolean.class, false),
+
+    ITEM(10, ItemStack.class, null),
+
+    AGE(12, Integer.class, null)
 
     ;
 

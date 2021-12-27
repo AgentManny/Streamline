@@ -1,4 +1,4 @@
-package gg.manny.streamline.entity.metadata;
+package gg.manny.streamline.util.entity.metadata;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

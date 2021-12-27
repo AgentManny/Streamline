@@ -1,10 +1,10 @@
-package gg.manny.streamline.moreprojectiles.event;
+package gg.manny.streamline.util.moreprojectiles.event;
 
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
-import gg.manny.streamline.moreprojectiles.projectile.CustomProjectile;
+import gg.manny.streamline.util.moreprojectiles.projectile.CustomProjectile;
 
 /**
  * BlockProjectileHitEvent is fired when falling block projectile hits entity or

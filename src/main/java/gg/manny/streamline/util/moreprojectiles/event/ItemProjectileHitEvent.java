@@ -1,11 +1,11 @@
-package gg.manny.streamline.moreprojectiles.event;
+package gg.manny.streamline.util.moreprojectiles.event;
 
 
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
-import gg.manny.streamline.moreprojectiles.projectile.CustomProjectile;
+import gg.manny.streamline.util.moreprojectiles.projectile.CustomProjectile;
 
 /**
  * ItemProjectileHitEvent is fired when item projectile hits entity or block.
