@@ -9,6 +9,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
+import java.util.Map;
 
 /**
  * Drink CommandServices are {@link JavaPlugin}-specific.
@@ -41,6 +42,8 @@ public interface CommandService {
      * @return The {@link DrinkCommandContainer} containing the command you registered (same as the root passed in)
      */
     DrinkCommandContainer registerSub(@Nonnull DrinkCommandContainer root, @Nonnull Object handler);
+
+    Map<String, DrinkCommandContainer> getCommands();
 
     /**
      * Must be called after all of you commands have been registered into Drink with

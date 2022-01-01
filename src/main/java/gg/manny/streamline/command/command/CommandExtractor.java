@@ -2,6 +2,7 @@ package gg.manny.streamline.command.command;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import gg.manny.streamline.Streamline;
 import gg.manny.streamline.command.annotation.Command;
 import gg.manny.streamline.command.annotation.Require;
 import gg.manny.streamline.command.exception.CommandRegistrationException;
@@ -52,7 +53,8 @@ public class CommandExtractor {
                 perm = require.value();
             } else if (method.getDeclaringClass().isAnnotationPresent(Require.class)) {
                 Require require = method.getDeclaringClass().getAnnotation(Require.class);
-                perm = require.value() + command.name();
+                perm = require.value() + (command.name().isEmpty() ? "" : ".") + command.name();
+                Streamline.getInstance().getLogger().info("[Command] " + command.name() + " is inherting permission from parent class: " + perm);
             }
             DrinkCommand drinkCommand = new DrinkCommand(
                     commandService, command.name(), Sets.newHashSet(command.aliases()), command.desc(), command.usage(),

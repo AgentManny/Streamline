@@ -9,14 +9,10 @@ import gg.manny.streamline.handler.ServerMovementHandler;
 import gg.manny.streamline.handler.ServerPacketHandler;
 import gg.manny.streamline.menu.MenuHandler;
 import gg.manny.streamline.npc.NPCManager;
+import gg.manny.streamline.util.Lang;
 import lombok.Getter;
-import org.bukkit.Location;
 import org.bukkit.event.Listener;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.util.BlockVector;
-import org.bukkit.util.Vector;
 import rip.thecraft.server.CraftServer;
 import rip.thecraft.server.handler.MovementHandler;
 import rip.thecraft.server.handler.PacketHandler;
@@ -60,6 +56,12 @@ public class Streamline extends JavaPlugin implements Listener {
         npcManager = new NPCManager(this);
 
         MenuHandler.init(this);
+
+        try {
+            Lang.initialize(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         CraftServer.getInstance().addPacketHandler(packetHandler = new ServerPacketHandler(this, npcManager));
         CraftServer.getInstance().addMovementHandler(movementHandler = new ServerMovementHandler(this, npcManager));

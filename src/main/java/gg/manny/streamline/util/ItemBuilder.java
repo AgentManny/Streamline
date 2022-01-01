@@ -1,11 +1,16 @@
 package gg.manny.streamline.util;
 
 import com.google.common.base.Preconditions;
+import org.bukkit.Color;
+import org.bukkit.DyeColor;
+import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.material.MaterialData;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -267,6 +272,35 @@ public class ItemBuilder {
     public ItemBuilder unbreakable(boolean unbreakable) {
         validateMeta();
         meta.spigot().setUnbreakable(unbreakable);
+        return this;
+    }
+
+    /**
+     * Sets the color of this item builder.
+     * @param color Color to set
+     * @return this instance
+     */
+    public ItemBuilder color(Color color) {
+        validateMeta();
+        ItemMeta meta = this.meta;
+        switch (stack.getType()) {
+            case FIREWORK_CHARGE: {
+                ((FireworkMeta) meta).addEffect(FireworkEffect.builder().withColor(color).build());
+                break;
+            }
+            case WOOL: {
+                stack.setData(new MaterialData(stack.getType(), DyeColor.getByColor(color).getWoolData()));
+                break;
+            }
+            case INK_SACK: {
+                stack.setData(new MaterialData(stack.getType(), DyeColor.getByColor(color).getDyeData()));
+                break;
+            }
+            default: {
+                throw new UnsupportedOperationException("Color cannot be set to " + stack.getType());
+            }
+        }
+        meta(meta);
         return this;
     }
 
