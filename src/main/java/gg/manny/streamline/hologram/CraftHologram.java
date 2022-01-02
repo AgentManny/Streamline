@@ -1,14 +1,17 @@
 package gg.manny.streamline.hologram;
 
+import com.google.gson.JsonObject;
 import gg.manny.streamline.hologram.line.HologramItemLine;
 import gg.manny.streamline.hologram.line.HologramLine;
 import gg.manny.streamline.hologram.line.HologramTextLine;
+import gg.manny.streamline.util.LocationSerializer;
 import gg.manny.streamline.util.PlayerUtils;
 import io.netty.util.internal.ConcurrentSet;
 import lombok.Getter;
 import lombok.NonNull;
 import net.minecraft.server.v1_8_R3.Packet;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntityDestroy;
+import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
@@ -34,6 +37,11 @@ public class CraftHologram implements Hologram {
     private Set<UUID> viewers = new ConcurrentSet<>(); // todo Change to concurrent? It'll be removing adding a lot
 
     @NonNull private Location location;
+
+    public CraftHologram(JsonObject data) {
+        this.id = data.get("id").getAsString();
+        this.location = LocationSerializer.fromString(data.get("location").getAsString());
+    }
 
     public CraftHologram(String id, Location location) {
         this.id = id;
@@ -206,5 +214,12 @@ public class CraftHologram implements Hologram {
 
     private void sendPacket(Player player, Packet<?> packet) {
         ((CraftPlayer)player).getHandle().playerConnection.sendPacket(packet);
+    }
+
+    public JsonObject serialize() {
+        JsonObject data = new JsonObject();
+        data.addProperty("id", this.id);
+        data.addProperty("location", LocationSerializer.toString(this.location));
+        return data;
     }
 }

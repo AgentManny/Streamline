@@ -1,6 +1,8 @@
 package gg.manny.streamline.hologram;
 
+import com.google.gson.JsonObject;
 import gg.manny.streamline.hologram.line.HologramLine;
+import org.bson.Document;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -62,5 +64,7 @@ public interface Hologram {
     List<String> getTextLines();
 
     Set<UUID> getViewers();
+
+    JsonObject serialize();
 
 }

@@ -22,7 +22,7 @@ public class HologramProvider extends DrinkProvider<Hologram> {
 
     @Override
     public boolean isAsync() {
-        return false;
+        return true;
     }
 
     @Override
