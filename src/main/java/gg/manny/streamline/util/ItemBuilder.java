@@ -8,7 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.inventory.meta.FireworkEffectMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.MaterialData;
 
@@ -285,7 +285,7 @@ public class ItemBuilder {
         ItemMeta meta = this.meta;
         switch (stack.getType()) {
             case FIREWORK_CHARGE: {
-                ((FireworkMeta) meta).addEffect(FireworkEffect.builder().withColor(color).build());
+                ((FireworkEffectMeta) meta).setEffect(FireworkEffect.builder().withColor(color).build());
                 break;
             }
             case WOOL: {

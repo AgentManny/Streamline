@@ -33,6 +33,14 @@
             <systemPath>${project.basedir}/libs/ProtocolSupport.jar</systemPath>
         </dependency>
 
+        <!-- Lunar Client API -->
+        <dependency>
+            <groupId>com.lunarclient</groupId>
+            <artifactId>bukkitapi</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- Dependencies -->
         <dependency>
             <groupId>org.mongodb</groupId>

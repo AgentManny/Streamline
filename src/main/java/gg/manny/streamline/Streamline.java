@@ -3,6 +3,7 @@ package gg.manny.streamline;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.lunarclient.bukkitapi.LunarClientAPI;
 import gg.manny.streamline.command.CommandService;
 import gg.manny.streamline.command.command.DrinkCommandService;
 import gg.manny.streamline.handler.ServerMovementHandler;
@@ -54,6 +55,8 @@ public class Streamline extends JavaPlugin implements Listener {
         CommandService commandService = getCommandService(this);
 
         npcManager = new NPCManager(this);
+
+        new LunarClientAPI().onEnable(); // Hook Lunar Client API directly
 
         MenuHandler.init(this);
 
