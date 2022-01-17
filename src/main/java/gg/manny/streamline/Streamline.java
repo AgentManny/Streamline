@@ -56,7 +56,7 @@ public class Streamline extends JavaPlugin implements Listener {
 
         npcManager = new NPCManager(this);
 
-        new LunarClientAPI().onEnable(); // Hook Lunar Client API directly
+        new LunarClientAPI(this); // Hook Lunar Client API directly
 
         MenuHandler.init(this);
 
